@@ -43,6 +43,10 @@ jobs:
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
-            cd /var/www/timemanager/TimeManager
-            docker-compose pull
-            docker-compose up -d
+            echo "Connected successfully"
+            pwd
+            ls -la
+            cd /var/www/timemanager/TimeManager || echo "Failed to change directory"
+            ls -la
+            docker-compose pull || echo "Failed to pull Docker images"
+            docker-compose up -d || echo "Failed to start Docker containers"
