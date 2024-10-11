@@ -8,6 +8,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: deployment
+
     steps:
       - uses: actions/checkout@v2
       - name: Debug
