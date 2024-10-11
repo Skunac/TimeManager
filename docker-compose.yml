@@ -1,5 +1,6 @@
 services:
   phoenix:
+    image: skuun/timemanager-phoenix:latest
     build:
       context: ./api/time_manager
       dockerfile: Dockerfile
@@ -33,6 +34,7 @@ services:
       - app-network
 
   nuxt:
+    image: skuun/timemanager-nuxt:latest
     build:
       context: ./client
       dockerfile: Dockerfile
