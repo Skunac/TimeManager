@@ -37,16 +37,17 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/timemanager-nuxt:latest
 
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USERNAME }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
-          script: |
-            echo "Connected successfully"
-            pwd
-            ls -la
-            cd /var/www/timemanager/TimeManager || echo "Failed to change directory"
-            ls -la
-            docker-compose pull || echo "Failed to pull Docker images"
-            docker-compose up -d || echo "Failed to start Docker containers"
+        run: |
+            mkdir -p ~/.ssh
+            echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} << EOF
+              echo "Connected successfully"
+              pwd
+              ls -la
+              cd /var/www/timemanager/TimeManager || echo "Failed to change directory"
+              ls -la
+              docker-compose pull || echo "Failed to pull Docker images"
+              docker-compose up -d || echo "Failed to start Docker containers"
+            EOF
+        shell: bash
