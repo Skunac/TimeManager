@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: deployment
     steps:
+      - name: Display public key
+        run: ssh-keygen -y -f ~/.ssh/id_rsa
+
       - name: Prepare SSH key
         run: |
           mkdir -p ~/.ssh
