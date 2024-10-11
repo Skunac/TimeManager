@@ -8,8 +8,21 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: deployment
-
     steps:
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DROPLET_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          sed -i 's/\\n/\n/g' ~/.ssh/id_rsa
+
+      - name: Check SSH key
+        run: ssh-keygen -l -f ~/.ssh/id_rsa || echo "Invalid key format"
+
+      - name: Test SSH Connection
+        run: |
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.DROPLET_USERNAME }}@${{ secrets.DROPLET_IP }} "echo Connected successfully"
+
       - uses: actions/checkout@v2
       - name: Debug
         run: |
