@@ -1,0 +1,60 @@
+services:
+  phoenix:
+    build:
+      context: ./api/time_manager
+      dockerfile: Dockerfile
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: time_manager_dev
+      PGPORT: 5432
+      PGHOST: db
+      MIX_ENV: dev
+    ports:
+      - '4000:4000'
+    depends_on:
+      - db
+    volumes:
+      - ./api/time_manager:/app
+    networks:
+      - app-network
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: time_manager_dev
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - app-network
+
+  nuxt:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      API_URL: http://phoenix:4000/api
+      API_BASE_URL: http://localhost:4000/api
+    depends_on:
+      - phoenix
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    name: time_manager_pgdata

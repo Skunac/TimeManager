@@ -1,0 +1,4 @@
+<template>
+  <UserNavbar/>
+  <slot/>
+</template>
