@@ -8,6 +8,24 @@ import Config
 config :timemanager, TimemanagerWeb.Endpoint,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+# Configure database
+config :timemanager, Timemanager.Repo,
+       username: System.get_env("PGUSER"),
+       password: System.get_env("PGPASSWORD"),
+       database: System.get_env("PGDATABASE"),
+       hostname: System.get_env("PGHOST"),
+       port: String.to_integer(System.get_env("PGPORT") || "5432"),
+       pool_size: 10,
+       ssl: false
+
+# CORS configuration
+config :cors_plug,
+       origin: [System.get_env("FRONTEND_URL") || "http://localhost:3000"],
+       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+       headers: ["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "DNT","Cache-Control", "X-Mx-ReqToken", "Keep-Alive", "X-Requested-With", "If-Modified-Since", "X-CSRF-Token"],
+       max_age: 86400,
+       credentials: true
+
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Timemanager.Finch
 
