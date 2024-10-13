@@ -15,6 +15,7 @@ defmodule Timemanager.MixProject do
           include_executables_for: [:unix],
           steps: [:assemble, :tar]
         ]
+      ]
     ]
   end
 
