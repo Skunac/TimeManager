@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y postgresql-client
 WORKDIR /app
 
 # Copy the release from the previous stage
-COPY --from=build /app/_build/prod/rel/time_manager ./
+COPY --from=build /app/_build/prod/rel/timemanager ./
 
 # Copy entrypoint script
 COPY entrypoint.prod.sh /usr/local/bin/
@@ -37,4 +37,4 @@ RUN chmod +x /usr/local/bin/entrypoint.prod.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]
 
-CMD ["bin/time_manager", "start"]
+CMD ["bin/timemanager", "start"]
