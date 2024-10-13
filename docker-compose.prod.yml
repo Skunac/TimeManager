@@ -9,7 +9,7 @@ services:
       PGDATABASE: ${POSTGRES_DB}
       PGPORT: 5432
       PGHOST: db
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-}
       MIX_ENV: prod
       PHX_HOST: 46.101.190.248
       PORT: 4000
