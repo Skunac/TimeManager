@@ -1,4 +1,4 @@
-name: Deploy to DigitalOcean
+name: Deploy to DigitalOcean via Portainer
 
 on:
   push:
@@ -21,16 +21,18 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./api/time_manager
+          file: ./api/time_manager/Dockerfile.prod
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/timemanager-phoenix:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/timemanager-phoenix:prod
 
       - name: Build and push Nuxt image
         uses: docker/build-push-action@v2
         with:
           context: ./client
+          file: ./client/Dockerfile.prod
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/timemanager-nuxt:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/timemanager-nuxt:prod
 
       - name: Trigger Portainer Webhook
         run: |
-          curl -k -X POST ${{ secrets.PORTAINER_WEBHOOK_URL }}
+          curl -X POST ${{ secrets.PORTAINER_WEBHOOK_URL }}
