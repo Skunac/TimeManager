@@ -24,7 +24,7 @@ RUN mix release
 # the compiled release and other runtime necessities
 FROM elixir:latest
 
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apt-get update && apt-get install -y postgresql-client openssl
 
 WORKDIR /app
 
