@@ -3,10 +3,17 @@ set -e
 
 echo "Entrypoint script is running"
 
-# Generate SECRET_KEY_BASE if not set
+# Path to store the SECRET_KEY_BASE
+SECRET_FILE="/app/secret_key_base"
+
+# Generate SECRET_KEY_BASE if not set and not stored
 if [ -z "$SECRET_KEY_BASE" ]; then
-    export SECRET_KEY_BASE=$(mix phx.gen.secret)
-    echo "Generated new SECRET_KEY_BASE"
+    if [ ! -f "$SECRET_FILE" ]; then
+        mix phx.gen.secret > "$SECRET_FILE"
+        echo "Generated new SECRET_KEY_BASE and stored it"
+    fi
+    export SECRET_KEY_BASE=$(cat "$SECRET_FILE")
+    echo "Loaded SECRET_KEY_BASE from file"
 fi
 
 # Wait for Postgres to become available
@@ -19,7 +26,7 @@ done
 echo "Postgres is available"
 
 # Run migrations
-/app/bin/timemanager eval "TimeManager.Release.migrate"
+/app/bin/timemanager eval "Timemanager.Release.migrate"
 
 # Start the Phoenix server
 exec /app/bin/timemanager start
