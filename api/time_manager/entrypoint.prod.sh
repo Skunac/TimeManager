@@ -4,7 +4,7 @@ set -e
 echo "Entrypoint script is running"
 
 # Path to store the SECRET_KEY_BASE
-SECRET_FILE="/app/secret_key_base"
+SECRET_FILE="/app/secret_key_base/key"
 
 # Generate SECRET_KEY_BASE if not set and not stored
 if [ -z "$SECRET_KEY_BASE" ]; then
