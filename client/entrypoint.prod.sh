@@ -1,7 +1,4 @@
-#!/bin/bash
-set -e
+#!/bin/sh
 
-echo "Entrypoint script is running"
-
-# Start the Nuxt server
-exec npm start
+echo "Starting Nuxt.js application"
+exec "$@"

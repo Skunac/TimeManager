@@ -23,9 +23,6 @@ WORKDIR /app
 # Copy built assets from the build stage
 COPY --from=build /app/.output ./
 
-# Install production dependencies
-RUN npm install --only=production
-
 # Copy entrypoint script
 COPY entrypoint.prod.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.prod.sh
