@@ -37,12 +37,7 @@ jobs:
             -Dsonar.projectKey=timemanager
             -Dsonar.organization=your-sonarcloud-organization
             -Dsonar.sources=api/time_manager/lib,client/src
-            -Dsonar.tests=api/time_manager/test,client/test
-            -Dsonar.exclusions=**/node_modules/**,**/*.spec.js,**/*.spec.ts,**/*.test.js,**/*.test.ts
-            -Dsonar.test.inclusions=**/*_test.exs,**/*.spec.js,**/*.spec.ts,**/*.test.js,**/*.test.ts
-            -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info
-            -Dsonar.typescript.lcov.reportPaths=client/coverage/lcov.info
-            -Dsonar.elixir.coverageReportPath=api/time_manager/cover/lcov.info
+            -Dsonar.exclusions=**/node_modules/**
             -Dsonar.elixir.file.suffixes=ex,exs
             -Dsonar.javascript.file.suffixes=.js,.jsx
             -Dsonar.typescript.file.suffixes=.ts,.tsx
