@@ -35,13 +35,14 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=timemanager
-            -Dsonar.organization=your-sonarcloud-organization
-            -Dsonar.sources=api/time_manager/lib,client/src
-            -Dsonar.exclusions=**/node_modules/**
+            -Dsonar.organization=Skunac
+            -Dsonar.sources=api/time_manager/lib,client
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.nuxt/**
+            -Dsonar.inclusions=client/pages/**,client/components/**,client/layouts/**,client/plugins/**,client/store/**,client/middleware/**,client/assets/**,client/static/**
             -Dsonar.elixir.file.suffixes=ex,exs
-            -Dsonar.javascript.file.suffixes=.js,.jsx
+            -Dsonar.javascript.file.suffixes=.js,.jsx,.vue
             -Dsonar.typescript.file.suffixes=.ts,.tsx
-            -Dsonar.language=elixir,ts,js
+            -Dsonar.language=elixir,js,ts
 
   build-and-deploy:
     needs: analyze
