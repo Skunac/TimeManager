@@ -1,11 +1,55 @@
-name: Deploy to DigitalOcean via Portainer
+name: Build, Test, Analyze, and Deploy
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.14.0'
+          otp-version: '25.0'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=timemanager
+            -Dsonar.organization=your-sonarcloud-organization
+            -Dsonar.sources=api/time_manager/lib,client/src
+            -Dsonar.tests=api/time_manager/test,client/test
+            -Dsonar.exclusions=**/node_modules/**,**/*.spec.js,**/*.spec.ts,**/*.test.js,**/*.test.ts
+            -Dsonar.test.inclusions=**/*_test.exs,**/*.spec.js,**/*.spec.ts,**/*.test.js,**/*.test.ts
+            -Dsonar.javascript.lcov.reportPaths=client/coverage/lcov.info
+            -Dsonar.typescript.lcov.reportPaths=client/coverage/lcov.info
+            -Dsonar.elixir.coverageReportPath=api/time_manager/cover/lcov.info
+            -Dsonar.elixir.file.suffixes=ex,exs
+            -Dsonar.javascript.file.suffixes=.js,.jsx
+            -Dsonar.typescript.file.suffixes=.ts,.tsx
+            -Dsonar.language=elixir,ts,js
+
   build-and-deploy:
+    needs: analyze
     runs-on: ubuntu-latest
     environment: deployment
     steps:
