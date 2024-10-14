@@ -21,14 +21,6 @@ if [ -z "$SECRET_KEY_BASE" ]; then
     echo "Loaded SECRET_KEY_BASE from file"
 fi
 
-# Ensure all required environment variables are set
-: "${PGUSER:?PGUSER must be set}"
-: "${PGPASSWORD:?PGPASSWORD must be set}"
-: "${PGDATABASE:?PGDATABASE must be set}"
-: "${PGHOST:?PGHOST must be set}"
-: "${PGPORT:=5432}"
-: "${POOL_SIZE:=10}"
-
 # Wait for Postgres to become available
 until pg_isready -h $PGHOST -p $PGPORT -U $PGUSER
 do

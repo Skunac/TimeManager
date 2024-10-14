@@ -42,5 +42,3 @@ RUN mkdir -p /app/secret_key_base
 VOLUME ["/app/secret_key_base"]
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]
-
-CMD ["bin/timemanager", "start"]
