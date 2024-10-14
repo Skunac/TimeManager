@@ -4,7 +4,9 @@ import Config
 # from the system environment. Therefore, you will need
 # to set PORT=80 before running your server.
 config :timemanager, TimemanagerWeb.Endpoint,
-       url: [host: System.get_env("PHX_HOST") || "example.com", port: 80],
+       url: [host: System.get_env("PHX_HOST") || "localhost", port: 80],
+       http: [port: 4000],
+       check_origin: false,
        cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
