@@ -31,7 +31,7 @@ done
 echo "Postgres is available"
 
 # Run migrations
-/app/bin/timemanager eval "Timemanager.Release.migrate"
+/app/bin/timemanager eval "Timemanager.Release.migrate()"
 
 # Start the Phoenix server
 exec /app/bin/timemanager start
