@@ -20,3 +20,5 @@ if [ -z "$SECRET_KEY_BASE" ]; then
     export SECRET_KEY_BASE=$(cat "$SECRET_FILE")
     echo "Loaded SECRET_KEY_BASE from file"
 fi
+
+echo "$@"
