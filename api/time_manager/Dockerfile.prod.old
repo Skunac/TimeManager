@@ -1,0 +1,44 @@
+# Use an official Elixir runtime as a parent image
+FROM elixir:latest as build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y build-essential
+
+# Set environment variables
+ENV MIX_ENV=prod
+
+# Create app directory and copy the Elixir projects into it
+WORKDIR /app
+COPY . .
+
+# Install hex package manager and Phoenix framework
+RUN mix local.hex --force && \
+    mix local.rebar --force && \
+    mix deps.get --only prod && \
+    mix compile
+
+# Create the release
+RUN mix release
+
+# Start a new build stage so that the final image will only contain
+# the compiled release and other runtime necessities
+FROM elixir:latest
+
+RUN apt-get update && apt-get install -y postgresql-client openssl
+
+WORKDIR /app
+
+# Copy the release from the previous stage
+COPY --from=build /app/_build/prod/rel/timemanager ./
+
+# Copy entrypoint script
+COPY entrypoint.prod.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.prod.sh
+
+# Create a directory for the secret key
+RUN mkdir -p /app/secret_key_base
+
+# Declare the volume for the secret key
+VOLUME ["/app/secret_key_base"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]
