@@ -4,9 +4,6 @@ set -e
 # Change to the app directory
 cd /app
 
-# Ensure dependencies are installed
-npm install
-
 # Wait for the Phoenix backend to become available
 until curl -s $API_URL/clocks > /dev/null; do
   echo "Waiting for Phoenix backend..."
