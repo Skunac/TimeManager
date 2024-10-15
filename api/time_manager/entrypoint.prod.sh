@@ -21,4 +21,4 @@ if [ -z "$SECRET_KEY_BASE" ]; then
     echo "Loaded SECRET_KEY_BASE from file"
 fi
 
-echo "$@"
+exec "$@"
