@@ -87,7 +87,17 @@ ENV MIX_ENV="prod"
 # Only copy the final release from the build stage
 COPY --from=builder --chown=nobody:root /app/_build/${MIX_ENV}/rel/timemanager ./
 
-USER nobody
+# Copy entrypoint script
+COPY entrypoint.prod.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.prod.sh
+
+# Create a directory for the secret key
+RUN mkdir -p /app/secret_key_base
+
+# Declare the volume for the secret key
+VOLUME ["/app/secret_key_base"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]
 
 # If using an environment that doesn't automatically reap zombie processes, it is
 # advised to add an init process such as tini via `apt-get install`

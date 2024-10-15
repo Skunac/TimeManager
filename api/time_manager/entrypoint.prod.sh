@@ -20,21 +20,3 @@ if [ -z "$SECRET_KEY_BASE" ]; then
     export SECRET_KEY_BASE=$(cat "$SECRET_FILE")
     echo "Loaded SECRET_KEY_BASE from file"
 fi
-
-# Wait for Postgres to become available
-until pg_isready -h $PGHOST -p $PGPORT -U $PGUSER
-do
-  echo "Waiting for postgres..."
-  sleep 5
-done
-
-echo "Postgres is available"
-
-# Create the database if it doesn't exist
-/app/bin/timemanager eval "Timemanager.Release.create_db()"
-
-# Run migrations
-/app/bin/timemanager eval "Timemanager.Release.migrate()"
-
-# Start the Phoenix server
-exec /app/bin/timemanager start
