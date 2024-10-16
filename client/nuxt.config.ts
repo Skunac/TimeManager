@@ -9,8 +9,7 @@ export default defineNuxtConfig({
     }
   },
   devtools: { enabled: true },
-  extends: ['@nuxt/ui-pro'],
   modules: ["@nuxt/ui", 'nuxt-highcharts', // With options
-    ['nuxt-highcharts', { /* module options */ }], '@pinia/nuxt'],
+  ['nuxt-highcharts', { /* module options */ }], '@pinia/nuxt'],
   compatibilityDate: "2024-10-08",
 })

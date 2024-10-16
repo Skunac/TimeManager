@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const router = useRouter();
 const store = useWorkingTimesStore();

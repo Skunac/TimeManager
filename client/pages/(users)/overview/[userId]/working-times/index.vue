@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import WorkingTimeChart from "../../../../../../TimeManager/client/components/working-times/working-time-chart.vue";
+import WorkingTimeChart from "~/components/working-times/working-time-chart.vue";
 
 const layout = "user-layout";
 

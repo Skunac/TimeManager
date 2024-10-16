@@ -2,10 +2,12 @@ import { defineStore } from 'pinia'
 import useApiService from "~/services/api";
 
 export const useUserStore = defineStore('user', {
-    state: () => ({
-        currentUser: null as User | null,
-        selectedUser: null as User | null,
-    }),
+    state: () => {
+        return {
+            currentUser: null as User | null,
+            selectedUser: null as User | null,
+        }
+    },
 
     actions: {
         async createUser(userData: Omit<User, 'id'>) {
@@ -31,7 +33,6 @@ export const useUserStore = defineStore('user', {
                 throw new Error('Failed to get user')
             }
             if (!userId) {
-                this.currentUser = data.value
                 this.selectedUser = data.value
             }
             return data.value
@@ -51,8 +52,8 @@ export const useUserStore = defineStore('user', {
         api() {
             return useApiService();
         },
-        getSelectedUser() {
-            return this.selectedUser
+        getCurrentUser(): User {
+            return this.currentUser
         },
     },
 })

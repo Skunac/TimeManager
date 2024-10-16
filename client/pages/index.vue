@@ -1,8 +1,7 @@
 <template>
   <div class="flex flex-col items-start my-6 gap-x-10 md:flex-row">
-    <DepartureButton/>
-
     <ArrivalButton/>
+    <DepartureButton/>
   </div>
 
   <div class="mt-6">

@@ -8,7 +8,12 @@ const items = [
   }],
   [{
     label: 'My account',
-    icon: 'i-heroicons-adjustments-horizontal-16-solid'
+    icon: 'i-heroicons-adjustments-horizontal-16-solid',
+    to: '/account'
+  }, {
+    label: 'Manage charts',
+    icon: 'i-heroicons-chart-bar',
+    to: '/chart-manager'
   }], [{
     label: 'Sign out',
     icon: 'i-heroicons-arrow-left-on-rectangle'

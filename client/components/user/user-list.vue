@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUserStore } from "~/stores/userStore";
 
 const router = useRouter();
@@ -62,9 +62,14 @@ const items = (row: User) => [
   >
     <template #avatar-data="{ row }">
       <UAvatar
+          class="hover:cursor-pointer"
           src="https://ui.shadcn.com/avatars/02.png"
           alt="Avatar"
+          @click="router.push(`/overview/${row.id}`)"
       />
+    </template>
+    <template #username-data="{ row }">
+      <span class="hover:underline hover:cursor-pointer" @click="router.push(`/overview/${row.id}`)">{{ row.username }}</span>
     </template>
     <template #actions-data="{ row }">
       <UDropdown :items="items(row)">

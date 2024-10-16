@@ -1,20 +1,9 @@
 <script setup lang="ts">
-const isOpen = ref(false)
-
 const links = [
   {
     label: 'Home',
     icon: 'i-heroicons-home',
     to: '/'
-  }, {
-    label: 'Dashboard',
-    icon: 'i-heroicons-home',
-    to: '/dashboard'
-  },
-  {
-    label: 'Manage charts',
-    icon: 'i-heroicons-chart-bar',
-    to: '/chart-manager'
   }
 ]
 </script>
@@ -33,12 +22,6 @@ const links = [
           </template>
         </UHorizontalNavigation>
       </div>
-
-      <div class="flex items-center">
-        <UColorModeButton />
-      </div>
     </UContainer>
   </nav>
-
-  <UserModal :is-open="isOpen"/>
 </template>
