@@ -25,14 +25,14 @@ export const useClockStore = defineStore('clock', {
             return data.value
         },
 
-        async createClock(userId: number, clockData: Omit<Clock, 'id' | 'user_id'>) {
+        async createClock(userId: number, clockData: Omit<Clock, 'id'>) {
             const { data, error } = await this.api.createClock(userId, clockData)
             if (error.value) {
                 throw new Error('Failed to create clock')
             }
             if (data.value) {
-                this.clocks.push(data.value)
                 this.currentClock = data.value
+                this.clocks.push(data.value)
             }
             return data.value
         },

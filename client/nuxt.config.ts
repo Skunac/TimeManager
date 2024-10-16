@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   colorMode: {
-    preference: 'light'
+    preference: 'dark'
   },
   runtimeConfig: {
     public: {
@@ -9,16 +9,8 @@ export default defineNuxtConfig({
     }
   },
   devtools: { enabled: true },
+  extends: ['@nuxt/ui-pro'],
   modules: ["@nuxt/ui", 'nuxt-highcharts', // With options
-  ['nuxt-highcharts', { /* module options */ }], '@pinia/nuxt'],
-  router: {
-    extendRoutes(routes, resolve) {
-      routes.push({
-        name: 'dynamic',
-        path: '/:module/:userId',
-        component: resolve(__dirname, 'app.vue')
-      })
-    }
-  },
+    ['nuxt-highcharts', { /* module options */ }], '@pinia/nuxt'],
   compatibilityDate: "2024-10-08",
 })
