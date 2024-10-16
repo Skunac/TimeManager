@@ -2,7 +2,7 @@ import { useFetch, UseFetchOptions } from '#app'
 
 const useApiService = () => {
     const config = useRuntimeConfig()
-    const baseURL = config.public.API_URL
+    const baseURL = config.public.API_BASE_URL
 
     const apiFetch = (endpoint: string, options: UseFetchOptions<any> = {}) => {
         return useFetch(endpoint, {
