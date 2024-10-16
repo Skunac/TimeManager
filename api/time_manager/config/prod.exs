@@ -19,7 +19,7 @@ config :timemanager, Timemanager.Repo,
 
 # CORS configuration
 config :cors_plug,
-       origin: [System.get_env("FRONTEND_URL") || "http://localhost:3000"],
+       origin: ["*"],
        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
        headers: ["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "DNT","Cache-Control", "X-Mx-ReqToken", "Keep-Alive", "X-Requested-With", "If-Modified-Since", "X-CSRF-Token"],
        max_age: 86400,
