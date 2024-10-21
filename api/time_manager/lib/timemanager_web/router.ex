@@ -5,8 +5,21 @@ defmodule TimemanagerWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :auth do
+    plug TimemanagerWeb.AuthPlug
+  end
+
   scope "/api", TimemanagerWeb do
     pipe_through :api
+
+    # Authentification
+    post "/register", AuthController, :register
+    post "/login", AuthController, :login
+  end
+
+
+  scope "/api", TimemanagerWeb do
+    pipe_through [:api, :auth]
 
     # Scope Users
     scope "/users" do
@@ -16,6 +29,14 @@ defmodule TimemanagerWeb.Router do
       post "", UserController, :create_user
       put "/:id", UserController, :put_user_by_id
       delete "/:id", UserController, :delete_user_by_id
+    end
+
+    scope "/teams" do
+      get "", TeamController, :index
+      get "/:id", TeamController, :show
+      post "", TeamController, :create
+      put "/:id", TeamController, :update
+      delete "/:id", TeamController, :delete
     end
 
     # Scope WorkingTime

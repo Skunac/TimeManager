@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useWorkingTimesStore } from "~/stores/workingTimeStore";
 import { useUserStore } from "~/stores/userStore";
-import { computed, watchEffect } from "vue";
-import type { SeriesOptionsType } from 'highcharts';
+import { useChartStore } from "~/stores/chartStore";
+import { computed, ref, watchEffect } from "vue";
 
 const colorMode = useColorMode()
 
@@ -18,11 +18,19 @@ const isDark = computed({
 const route = useRoute();
 const workingStore = useWorkingTimesStore();
 const userStore = useUserStore();
+const chartStore = useChartStore();
 
 const user = useState<User | null>('user', () => null);
 const workingTimes = useState<WorkingTime[]>('workingTimes', () => []);
 const loading = useState<boolean>('loading', () => true);
 const error = useState<string | null>('error', () => null);
+const chartType = computed(() => chartStore.getChartType);
+const viewType = ref('daily');
+
+const viewOptions = [
+  { label: 'Daily', value: 'daily' },
+  { label: 'Weekly', value: 'weekly' }
+];
 
 const fetchData = async () => {
   const userId = route.params.userId as string;
@@ -50,29 +58,64 @@ watchEffect(() => {
   }
 });
 
-const chartData = computed<SeriesOptionsType[]>(() =>
-    workingTimes.value.map(wt => ({
-      x: new Date(wt.start).getTime(),
-      y: (new Date(wt.end).getTime() - new Date(wt.start).getTime()) / (1000 * 60 * 60),
-      name: new Date(wt.start).toLocaleDateString()
-    }))
-);
+const getWeekBounds = (date: Date) => {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay() + (d.getDay() === 0 ? -6 : 1)); // Set to Monday of the week
+  const start = new Date(d);
+  const end = new Date(d);
+  end.setDate(end.getDate() + 6);
+  return { start, end };
+};
 
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+};
+
+const chartData = computed(() => {
+  if (viewType.value === 'daily') {
+    return workingTimes.value.map(wt => ({
+      name: new Date(wt.start).toLocaleDateString(),
+      y: (new Date(wt.end).getTime() - new Date(wt.start).getTime()) / (1000 * 60 * 60)
+    }));
+  } else {
+    const weeklyData = workingTimes.value.reduce((acc, wt) => {
+      const date = new Date(wt.start);
+      const { start, end } = getWeekBounds(date);
+      const key = `${formatDate(start)} - ${formatDate(end)}`;
+      const hours = (new Date(wt.end).getTime() - new Date(wt.start).getTime()) / (1000 * 60 * 60);
+
+      if (!acc[key]) {
+        acc[key] = { name: key, y: 0 };
+      }
+      acc[key].y += hours;
+      return acc;
+    }, {} as Record<string, { name: string, y: number }>);
+
+    return Object.values(weeklyData);
+  }
+});
+
+const formatHours = (hours: number): string => {
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+  return `${wholeHours}h${minutes.toString().padStart(2, '0')}`;
+};
 const options = computed(() => ({
   chart: {
-    type: 'column',
+    type: chartType.value.id,
     backgroundColor: "#00000000"
   },
   title: {
-    text: `Working time for user ${user.value?.username}`,
+    text: `${viewType.value === 'daily' ? 'Daily' : 'Weekly'} working time for user ${user.value?.username}`,
     style: {
       color: isDark.value ? '#ffffff' : '#000000'
     }
   },
   xAxis: {
-    type: 'datetime',
+    type: 'category',
     title: {
-      text: 'Date',
+      text: viewType.value === 'daily' ? 'Date' : 'Week',
       style: {
         color: isDark.value ? '#cbd5e1' : '#64748b'
       },
@@ -80,6 +123,13 @@ const options = computed(() => ({
     labels: {
       style: {
         color: isDark.value ? '#cbd5e1' : '#64748b'
+      },
+      formatter: function() {
+        if (viewType.value === 'weekly') {
+          const [start, end] = this.value.split(' - ');
+          return `${start}<br>${end}`;
+        }
+        return this.value;
       }
     },
     lineColor: isDark.value ? '#475569' : '#cbd5e1'
@@ -96,15 +146,22 @@ const options = computed(() => ({
         color: isDark.value ? '#cbd5e1' : '#64748b'
       },
       formatter: function() {
-        return this.value.toFixed(2) + 'h';
+        return formatHours(this.value);
       }
     },
-    tickInterval: 2
+    min: 0,
   },
   plotOptions: {
-    column: {
-      pointPadding: 0.3,
+    series: {
       borderWidth: 0
+    },
+    pie: {
+      allowPointSelect: true,
+      cursor: 'pointer',
+      dataLabels: {
+        enabled: true,
+        format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+      }
     }
   },
   series: [{
@@ -118,17 +175,38 @@ const options = computed(() => ({
       color: isDark.value ? '#ffffff' : '#000000'
     },
     formatter: function() {
-      return `<b>${this.point.name}</b><br/>Duration: ${this.y.toFixed(2)} hours`;
+      return `<b>${this.point.name}</b><br/>Duration: ${formatHours(this.y)}`;
     }
   }
 }));
+watch(chartType, () => {
+  nextTick(() => {
+    if (chartRef.value) {
+      chartRef.value.chart.update({
+        chart: { type: chartType.value }
+      });
+    }
+  });
+});
 </script>
 
 <template>
   <UContainer>
     <div v-if="loading">Chargement...</div>
     <div v-else-if="error">{{ error }}</div>
-    <highchart v-else-if="user && workingTimes.length" :options="options" />
+    <div v-else-if="user && workingTimes.length">
+      <div class="flex space-x-4 mb-4">
+        <USelect
+            v-model="viewType"
+            :options="viewOptions"
+            class="w-48"
+        />
+      </div>
+      <highchart :options="options" ref="chartRef" />
+      <UButton class="mt-4" @click="$router.push('/chart-manager')">w²
+        Change Chart Type
+      </UButton>
+    </div>
     <div v-else>Aucune donnée disponible</div>
   </UContainer>
 </template>

@@ -30,10 +30,13 @@ config :timemanager, TimemanagerWeb.Endpoint,
     tailwind: {Tailwind, :install_and_run, [:timemanager, ~w(--watch)]}
   ]
 
-  config :cors_plug, origin: ["http://localhost:3000"],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin"],
-    max_age: 86400
+config :cors_plug,
+       origin: ["http://localhost:3000", "http://localhost:8080"],
+       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin", "X-C-XSRF-Token"],
+       credentials: true,
+       expose: ["*"],
+       max_age: 86400
 
 # ## SSL Support
 #

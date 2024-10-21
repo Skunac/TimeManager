@@ -21,9 +21,10 @@ config :timemanager, Timemanager.Repo,
 config :cors_plug,
        origin: ["*"],
        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-       headers: ["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "DNT","Cache-Control", "X-Mx-ReqToken", "Keep-Alive", "X-Requested-With", "If-Modified-Since", "X-CSRF-Token"],
+       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin", "X-C-XSRF-Token"],
        max_age: 86400,
-       credentials: true
+       credentials: true,
+       expose: ["*"]
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Timemanager.Finch

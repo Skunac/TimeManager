@@ -56,5 +56,6 @@ export const useWorkingTimesStore = defineStore('workingTimes', {
         api() {
             return useApiService();
         }
-    }
+    },
+    persist: true
 })

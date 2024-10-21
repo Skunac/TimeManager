@@ -1,22 +1,32 @@
 <script setup lang="ts">
-const people = [{
-  id: 'bar',
-  label: 'Bar',
-}, {
-  id: 'column',
-  label: 'Column',
-}, {
-  id: 'area',
-  label: 'Area',
-}]
+import { useChartStore } from "~/stores/chartStore";
 
-const selected = useState<string>('selected', () => people[0])
+const chartStore = useChartStore();
+
+const chartTypes = [
+  { id: 'bar', label: 'Bar' },
+  { id: 'column', label: 'Column' },
+  { id: 'area', label: 'Area' },
+  { id: 'line', label: 'Line' },
+  { id: 'spline', label: 'Spline' },
+  { id: 'areaspline', label: 'Area Spline' },
+  { id: 'scatter', label: 'Scatter' },
+  { id: 'pie', label: 'Pie' }
+];
+
+const selected = computed({
+  get: () => chartStore.getChartType,
+  set: (value: string) => chartStore.setChartType(value as ChartType)
+});
 </script>
 
 <template>
-  <section class="mt-5">
-    <div class="w-1/5">
-      <USelectMenu v-model="selected" :options="people" />
-    </div>
-  </section>
+  <UContainer>
+    <h1 class="text-2xl font-bold mb-4">Select Chart Type</h1>
+    <section class="mt-5">
+      <div class="w-1/5">
+        <USelectMenu v-model="selected" :options="chartTypes" />
+      </div>
+    </section>
+  </UContainer>
 </template>

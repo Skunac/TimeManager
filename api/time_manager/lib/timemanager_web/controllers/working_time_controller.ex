@@ -159,15 +159,24 @@ defmodule TimemanagerWeb.WorkingTimeController do
   end
 
   defp validate_dates(start, end_time) do
-    with {:ok, start_date, _} <- DateTime.from_iso8601(start),
-         {:ok, end_date, _} <- DateTime.from_iso8601(end_time) do
-      if DateTime.compare(start_date, end_date) == :lt do
-        :ok
+      with {:ok, start_date, _} <- DateTime.from_iso8601(start),
+           {:ok, end_date, _} <- DateTime.from_iso8601(end_time) do
+        case DateTime.compare(start_date, end_date) do
+          :lt ->
+            time_diff = DateTime.diff(end_date, start_date, :second)
+            max_seconds = 24 * 60 * 60  # 24 hours in seconds
+            if time_diff <= max_seconds do
+              :ok
+            else
+              {:error, "Time difference cannot be more than 24 hours"}
+            end
+          :eq ->
+            {:error, "Start date and end date cannot be the same"}
+          :gt ->
+            {:error, "Start date must be before end date"}
+        end
       else
-        {:error, "Start date must be before end date"}
+        _ -> {:error, "Invalid date format"}
       end
-    else
-      _ -> {:error, "Invalid date format"}
     end
-  end
 end

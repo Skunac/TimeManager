@@ -61,5 +61,6 @@ export const useClockStore = defineStore('clock', {
         api() {
             return useApiService();
         }
-    }
+    },
+    persist: true
 })

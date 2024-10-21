@@ -2,16 +2,52 @@ import { useFetch, UseFetchOptions } from '#app'
 
 const useApiService = () => {
     const config = useRuntimeConfig()
-    const baseURL = 'http://46.101.190.248:4000/api'
+    const baseURL = config.public.API_URL
 
-    const apiFetch = (endpoint: string, options: UseFetchOptions<any> = {}) => {
-        return useFetch(endpoint, {
-            baseURL,
-            ...options,
-        })
+    const xsrfToken = useCookie('XSRF-TOKEN')
+
+    const apiFetch = async (endpoint: string, options: any = {}) => {
+        try {
+            const headers = {
+                ...options.headers,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                ...(xsrfToken.value && { 'X-C-XSRF-Token': xsrfToken.value })
+            }
+
+            const response = await useFetch(endpoint, {
+                baseURL,
+                credentials: 'include',
+                ...options,
+                headers
+            })
+
+            if (response.error.value) {
+                throw new Error(response.error.value?.statusMessage || 'An error occurred')
+            }
+
+            return response
+        } catch (error) {
+            console.error('API call failed:', error)
+            throw error
+        }
     }
 
     return {
+        async login(authenticationData: Omit<Authentication, 'username'>): Promise<User> {
+            const response = await apiFetch('/login', {
+                method: 'POST',
+                body: authenticationData
+            })
+
+            // Stocker le token XSRF si présent dans la réponse
+            if (response.data.value && response.data.value.c_xsrf_token) {
+                xsrfToken.value = response.data.value.c_xsrf_token
+            }
+
+            return response.data.value as User
+        },
+
         async createUser(userData: Omit<User, 'id'>) {
             return apiFetch('/users', {
                 method: 'POST',

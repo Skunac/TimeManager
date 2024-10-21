@@ -4,6 +4,11 @@ const links = [
     label: 'Home',
     icon: 'i-heroicons-home',
     to: '/'
+  },
+  {
+    label: 'Chart manager',
+    icon: 'i-heroicons-chart-pie',
+    to: '/chart-manager'
   }
 ]
 </script>
@@ -16,9 +21,9 @@ const links = [
 
         <UDivider orientation="vertical" class="mx-3"/>
 
-        <UHorizontalNavigation :ui="{ container: 'gap-x-5', icon: {inactive: 'group-hover:text-sky-500/80'}}" :links="links">
+        <UHorizontalNavigation :ui="{ icon: {inactive: 'group-hover:text-sky-500/80' }}" :links="links">
           <template #default="{ link }">
-            <span class="group-hover:text-sky-500/80 relative" @click="navigateTo(`${link.name}/2`)">{{ link.label }}</span>
+            <span class="text-xs group-hover:text-primary relative" @click="navigateTo(`${link.name}/2`)">{{ link.label }}</span>
           </template>
         </UHorizontalNavigation>
       </div>

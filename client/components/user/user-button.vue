@@ -1,9 +1,13 @@
 <script setup lang="ts">
+const userStore = useUserStore();
+
+const currentUser = computed(() => userStore.currentUser)
+
 const items = [
   [{
-    label: 'reverssecole@gmail.com',
+    label: currentUser.value?.email,
     slot: 'account',
-    role: "Manager",
+    role: currentUser.value?.role,
     disabled: true
   }],
   [{
@@ -37,7 +41,7 @@ const items = [
       <p>
         Signed in as
       </p>
-      <p class="truncate font-medium text-gray-900 dark:text-white">
+      <p class="truncate text-xs font-light text-gray-900 dark:text-white">
         {{ item.label }}
       </p>
       <p class="text-xs text-primary truncate font-semibold mt-1.5">

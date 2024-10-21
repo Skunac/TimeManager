@@ -32,10 +32,6 @@ const links = [
     label: 'Working Times',
     icon: 'i-heroicons-calendar',
     to: `/overview/${route.params.userId}/working-times`
-  }, {
-    label: 'Clock',
-    icon: 'i-heroicons-clock',
-    to: `/overview/${route.params.userId}/clock`
   }]
 ]
 </script>

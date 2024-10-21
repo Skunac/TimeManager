@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import TeamList from "~/components/user/account/teams/team-list.vue";
-import EditUserModal from "~/components/user/edit-user-modal.vue";
+import EditUserModal from "~/components/user/account/edit-user-modal.vue";
+import DeleteUserButton from "~/components/user/account/delete-user-button.vue";
+import {ca} from "cronstrue/dist/i18n/locales/ca";
 
 const layout = "authenticated-layout"
 
 const userStore = useUserStore();
 
-onMounted(async () => {
-  console.log(userStore.currentUser)
-})
+const currentUser: User = computed(() => userStore.currentUser)
 </script>
 
 <template>
@@ -17,7 +17,7 @@ onMounted(async () => {
       <div>
         <h3 class="text-xl font-medium">My profile</h3>
 
-        <div class="flex justify-between items-center mt-5 border rounded-2xl p-4 py-5">
+        <div class="flex justify-between items-center mt-5 rounded-2xl py-4">
           <div class="flex items-center gap-x-4">
             <UAvatar
                 src="https://ui.shadcn.com/avatars/02.png"
@@ -26,24 +26,29 @@ onMounted(async () => {
             />
 
             <div class="flex flex-col">
-              <span class="font-semibold">REVERSS</span>
-              <p class="text-xs font-light text-gray-500">john@example.com</p>
+              <span class="font-semibold">{{ currentUser.username }}</span>
+              <p class="text-xs font-light text-gray-500">{{ currentUser.email }}</p>
 
               <div class="mt-3">
-                <span class="text-xs font-medium text-primary">Manager</span>
+                <span class="text-xs font-medium text-primary">{{ currentUser.role }}</span>
               </div>
             </div>
           </div>
 
-          <EditUserModal/>
+          <div class="flex gap-x-3">
+            <EditUserModal/>
+            <DeleteUserButton/>
+          </div>
         </div>
       </div>
+
+      <UDivider/>
 
       <div>
         <h3 class="text-xl font-medium">My teams</h3>
 
-        <div class="flex justify-between items-center mt-5 border rounded-2xl p-4 py-5">
-          <TeamList/>
+        <div class="flex justify-between items-center mt-5 py-4">
+          <TeamList class="w-full"/>
         </div>
       </div>
     </section>

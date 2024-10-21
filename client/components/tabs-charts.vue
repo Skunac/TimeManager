@@ -3,9 +3,6 @@
 const items = [{
   key: 'working-time',
   label: 'Working Time',
-}, {
-  key: 'clock',
-  label: 'Clock Manager',
 }]
 </script>
 

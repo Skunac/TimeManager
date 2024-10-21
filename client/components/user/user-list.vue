@@ -33,6 +33,9 @@ const columns = [{
   key: 'email',
   label: 'Email'
 }, {
+  key: 'role',
+  label: 'Role'
+}, {
   key: 'actions',
   label: 'Actions'
 }];
