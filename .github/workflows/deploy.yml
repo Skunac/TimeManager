@@ -36,12 +36,20 @@ jobs:
             -Dsonar.projectKey=Skunac_TimeManager
             -Dsonar.organization=skunac
             -Dsonar.sources=api/time_manager/lib,client
-            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.nuxt/**
-            -Dsonar.inclusions=client/pages/**,client/components/**,client/layouts/**,client/plugins/**,client/store/**,client/middleware/**,client/assets/**,client/static/**
-            -Dsonar.elixir.file.suffixes=ex,exs
-            -Dsonar.javascript.file.suffixes=.js,.jsx,.vue
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.languages=elixir,js,ts
+            -Dsonar.elixir.file.suffixes=.ex,.exs
+            -Dsonar.javascript.file.suffixes=.js,.jsx
             -Dsonar.typescript.file.suffixes=.ts,.tsx
-            -Dsonar.language=elixir,js,ts
+            -Dsonar.javascript.vue.fileSuffixes=.vue
+            -Dsonar.typescript.version=5.3.2
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.nuxt/**,**/coverage/**,**/*.config.js,**/*.config.ts,**/public/**,**/.git/**,**/*.min.js,**/vendor/**
+            -Dsonar.inclusions=client/pages/**/*,client/components/**/*,client/layouts/**/*,client/plugins/**/*,client/store/**/*,client/middleware/**/*,client/assets/**/*,client/static/**/*,api/time_manager/lib/**/*
+            -Dsonar.typescript.tsconfig=client/tsconfig.json
+            -Dsonar.verbose=true
+            -Dsonar.issue.ignore.multicriteria=typescript
+            -Dsonar.issue.ignore.multicriteria.typescript.ruleKey=typescript:S6598
+            -Dsonar.issue.ignore.multicriteria.typescript.resourceKey=**/*.ts
 
   build-and-deploy:
     needs: analyze
