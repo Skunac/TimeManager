@@ -1,28 +1,49 @@
 <script setup lang="ts">
+const toast = useToast();
+
+const userStore = useUserStore();
+const teamStore = useTeamStore();
+
+const isLoading = useState<boolean>('isLoading', () => true)
+const teams = useState<Team[] | []>('teams', () => [])
+
+const fetchTeams = async () => {
+  try {
+    console.log(userStore.currentUser)
+    /*teams.value = await userStore.currentUser.teams
+    isLoading.value = false*/
+  } catch (e) {
+    /*toast.add({ title: 'Error', })
+    isLoading.value = false*/
+  }
+}
+
+
+onMounted(() => {
+  setTimeout(() => {
+    fetchTeams();
+  }, 0.1)
+})
+
 const columns = [{
   key: "name",
   label: "Name"
 }, {
-  key: 'count_users',
-  label: 'Users'
+  key: 'number_users',
+  label: 'Number of users'
 }, {
   key: 'actions',
   label: 'Actions'
 }];
 
-const items = (row: User) => [
+const items = (row: Team) => [
   [{
-    label: 'View',
+    label: 'View team',
     icon: 'i-heroicons:eye',
-    click: () => router.push(`/overview/${row.id}`)
-  }, {
-    label: 'Edit',
-    icon: 'i-heroicons-pencil-square-20-solid',
-    click: () => console.log('Edit', row.id)
+    click: () => navigateTo(`/team/${row.id}/overview`)
   }], [{
-    label: 'Delete',
+    label: 'Delete team',
     icon: 'i-heroicons-trash-20-solid',
-    click: () => console.log('Delete', row.id)
   }]
 ];
 </script>
@@ -30,9 +51,21 @@ const items = (row: User) => [
 <template>
   <div class="w-full">
     <UTable
+        :rows="teams"
         :columns="columns"
-        :loading="loading"
+        :loading="isLoading"
+        :empty-state="{
+          label: 'No team',
+        }"
     >
+      <template #name-data="{ row }">
+        <span class="hover:underline hover:cursor-pointer uppercase" @click="navigateTo(`/team/${row.id}/overview`)">{{ row.name }}</span>
+      </template>
+
+      <template #number_users-data="{ row }">
+        <span>{{ row.users.length }}</span>
+      </template>
+
       <template #actions-data="{ row }">
         <UDropdown :items="items(row)">
           <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />

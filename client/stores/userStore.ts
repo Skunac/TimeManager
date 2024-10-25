@@ -15,7 +15,6 @@ export const useUserStore = defineStore('user', {
             if (error.value) {
                 throw new Error('Failed to create user')
             }
-            this.currentUser = data.value
             return data.value
         },
 
@@ -32,7 +31,7 @@ export const useUserStore = defineStore('user', {
             if (error.value) {
                 throw new Error('Failed to get user')
             }
-            if (!userId) {
+            if (userId) {
                 this.selectedUser = data.value
             }
             return data.value

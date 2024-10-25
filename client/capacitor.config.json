@@ -1,0 +1,15 @@
+{
+  "appId": "com.time_manager.app",
+  "appName": "Time Manager",
+  "webDir": ".output/public",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true,
+    "hostname": "localhost"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

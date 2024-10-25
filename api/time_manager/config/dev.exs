@@ -2,14 +2,14 @@ import Config
 
 # Configure your database
 config :timemanager, Timemanager.Repo,
-  username: System.get_env("PGUSER"),
-  password: System.get_env("PGPASSWORD"),
-  database: System.get_env("PGDATABASE"),
-  hostname: System.get_env("PGHOST"),
-  port: String.to_integer(System.get_env("PGPORT") || "5432"),
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+       username: System.get_env("PGUSER"),
+       password: System.get_env("PGPASSWORD"),
+       database: System.get_env("PGDATABASE"),
+       hostname: System.get_env("PGHOST"),
+       port: String.to_integer(System.get_env("PGPORT") || "5432"),
+       stacktrace: true,
+       show_sensitive_data_on_connection_error: true,
+       pool_size: 10
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -18,24 +18,28 @@ config :timemanager, Timemanager.Repo,
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
 config :timemanager, TimemanagerWeb.Endpoint,
-  # Binding to loopback ipv4 address prevents access from other machines.
-  # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: 4000],
-  check_origin: false,
-  code_reloader: true,
-  debug_errors: true,
-  secret_key_base: "ZqdtglWnb2wiFdcD7FY/ZKY6U1D4eVPcb0SzBah9Q2/51tCAiRzB4+VpzmSpukqb",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:timemanager, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:timemanager, ~w(--watch)]}
-  ]
+       # Binding to loopback ipv4 address prevents access from other machines.
+       # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
+       http: [ip: {0, 0, 0, 0}, port: 4000],
+       check_origin: false,
+       code_reloader: true,
+       debug_errors: true,
+       secret_key_base: "ZqdtglWnb2wiFdcD7FY/ZKY6U1D4eVPcb0SzBah9Q2/51tCAiRzB4+VpzmSpukqb",
+       watchers: [
+         esbuild: {Esbuild, :install_and_run, [:timemanager, ~w(--sourcemap=inline --watch)]},
+         tailwind: {Tailwind, :install_and_run, [:timemanager, ~w(--watch)]}
+       ]
+
+config :timemanager, Timemanager.Token,
+       secret_key: "ZqdtglWnb2wiFdcD7FY/ZKY6U1D4eVPcb0SzBah9Q2/51tCAiRzB4+VpzmSpukqb"
+
 
 config :cors_plug,
-       origin: ["http://localhost:3000", "http://localhost:8080"],
+       origin: ["http://localhost:3000", "http://localhost:8080", "http://localhost", "capacitor://localhost", "http://10.0.2.2:4000", "http://localhost:4000"],
        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin", "X-C-XSRF-Token"],
+       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin", "x-c-xsrf-token"],
        credentials: true,
-       expose: ["*"],
+       expose: ["x-c-xsrf-token"],
        max_age: 86400
 
 # ## SSL Support

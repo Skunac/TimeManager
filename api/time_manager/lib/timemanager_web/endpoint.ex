@@ -3,6 +3,12 @@ defmodule TimemanagerWeb.Endpoint do
 
   plug CORSPlug
 
+  plug Plug.Static,
+       at: "/",
+       from: {:timemanager, "priv/static"},
+       gzip: false,
+       only: ~w(assets index.html favicon.ico)
+
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.

@@ -2,9 +2,10 @@ defmodule TimemanagerWeb.TeamController do
   use TimemanagerWeb, :controller
   alias Timemanager.Repo
   alias Timemanager.Team
+  import Ecto.Query
 
   def index(conn, _params) do
-    teams = Repo.all(Team)
+    teams = Repo.all(Team) |> Repo.preload(:users)
 
     if Enum.empty?(teams) do
       conn
@@ -20,16 +21,17 @@ defmodule TimemanagerWeb.TeamController do
 
     case Repo.insert(changeset) do
       {:ok, team} ->
+        team = Repo.preload(team, :users)
         conn
         |> put_status(:created)
         |> json(team_to_json(team))
 
       {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-        case errors do
-          [name: {_, [constraint: :unique, constraint_name: "teams_name_index"]}] ->
+        case find_constraint_error(errors) do
+          {:name, _} ->
             conn
             |> put_status(:conflict)
-            |> json(%{error: :name_taken})
+            |> json(%{error: "Team name already exists"})
 
           _ ->
             conn
@@ -47,6 +49,7 @@ defmodule TimemanagerWeb.TeamController do
         |> json(%{error: "Team not found"})
 
       team ->
+        team = Repo.preload(team, :users)
         json(conn, team_to_json(team))
     end
   end
@@ -63,12 +66,21 @@ defmodule TimemanagerWeb.TeamController do
 
         case Repo.update(changeset) do
           {:ok, updated_team} ->
+            updated_team = Repo.preload(updated_team, :users)
             json(conn, team_to_json(updated_team))
 
-          {:error, changeset} ->
-            conn
-            |> put_status(:bad_request)
-            |> json(%{errors: format_changeset_errors(changeset)})
+          {:error, %Ecto.Changeset{errors: errors} = changeset} ->
+            case find_constraint_error(errors) do
+              {:name, _} ->
+                conn
+                |> put_status(:conflict)
+                |> json(%{error: "Team name already exists"})
+
+              _ ->
+                conn
+                |> put_status(:bad_request)
+                |> json(%{errors: format_changeset_errors(changeset)})
+            end
         end
     end
   end
@@ -95,12 +107,13 @@ defmodule TimemanagerWeb.TeamController do
     end
   end
 
-  def team_to_json(team) do
-    team = Repo.preload(team, :users)
+  # Private functions
+
+  defp team_to_json(team) do
     %{
       id: team.id,
       name: team.name,
-      users: Enum.map(team.users, fn user -> %{id: user.id, username: user.username} end)
+      users: Enum.map(team.users || [], fn user -> %{id: user.id, username: user.username} end)
     }
   end
 
@@ -109,6 +122,13 @@ defmodule TimemanagerWeb.TeamController do
       Enum.reduce(opts, msg, fn {key, value}, acc ->
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
+    end)
+  end
+
+  defp find_constraint_error(errors) do
+    Enum.find(errors, fn
+      {field, {_, [constraint: :unique, constraint_name: "teams_name_index"]}} -> {field, :unique}
+      _ -> false
     end)
   end
 end

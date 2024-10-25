@@ -22,3 +22,22 @@ logs
 .env
 .env.*
 !.env.example
+
+# Capacitor
+android/app/build/
+android/.gradle/
+android/local.properties
+ios/App/build/
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App.xcarchive/
+ios/App/DerivedData/
+www/
+
+# IDE
+*.iml
+.idea/
+.gradle/
+.project
+
+server/

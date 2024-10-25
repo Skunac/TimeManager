@@ -6,37 +6,28 @@ defmodule TimemanagerWeb.WorkingTimeController do
   import Ecto.Query
 
   def index(conn, %{"userID" => user_id} = params) do
-    user_id = String.to_integer(user_id)
-    query = from(w in WorkingTime, where: w.user == ^user_id)
+    with {:ok, parsed_user_id} <- parse_integer(user_id),
+         {:ok, query} <- build_query(parsed_user_id, params) do
 
-    query =
-      if params["start"] do
-        case DateTime.from_iso8601(params["start"]) do
-          {:ok, start_date, _} -> from(w in query, where: w.start >= ^start_date)
-          _ -> query
-        end
+      working_times = Repo.all(query)
+
+      if Enum.empty?(working_times) do
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "No working times found for this user"})
       else
-        query
+        json(conn, Enum.map(working_times, &working_time_to_map/1))
       end
-
-    query =
-      if params["end"] do
-        case DateTime.from_iso8601(params["end"]) do
-          {:ok, end_date, _} -> from(w in query, where: w.end <= ^end_date)
-          _ -> query
-        end
-      else
-        query
-      end
-
-    working_times = Repo.all(query)
-
-    if Enum.empty?(working_times) do
-      conn
-      |> put_status(:not_found)
-      |> json(%{error: "No working times found for this user"})
     else
-      json(conn, Enum.map(working_times, &working_time_to_map/1))
+      {:error, :invalid_integer} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid user ID format"})
+
+      {:error, :invalid_date, date_type} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid #{date_type} date format. Expected ISO8601 format (e.g., 2024-10-15T15:00:00Z)"})
     end
   end
 
@@ -147,6 +138,53 @@ defmodule TimemanagerWeb.WorkingTimeController do
             |> json(%{errors: changeset.errors})
         end
     end
+  end
+
+  # Private functions
+
+  defp parse_integer(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, ""} -> {:ok, int}
+      _ -> {:error, :invalid_integer}
+    end
+  end
+
+  defp build_query(user_id, params) do
+    base_query = from(w in WorkingTime, where: w.user == ^user_id)
+
+    with {:ok, query} <- add_start_date(base_query, params),
+         {:ok, query} <- add_end_date(query, params) do
+      {:ok, query}
+    end
+  end
+
+  defp add_start_date(query, %{"start" => start}) when is_binary(start) do
+    case DateTime.from_iso8601(start) do
+      {:ok, start_date, _} ->
+        {:ok, from(w in query, where: w.start >= ^start_date)}
+      _ ->
+        {:error, :invalid_date, "start"}
+    end
+  end
+  defp add_start_date(query, _), do: {:ok, query}
+
+  defp add_end_date(query, %{"end" => end_time}) when is_binary(end_time) do
+    case DateTime.from_iso8601(end_time) do
+      {:ok, end_date, _} ->
+        {:ok, from(w in query, where: w.end <= ^end_date)}
+      _ ->
+        {:error, :invalid_date, "end"}
+    end
+  end
+  defp add_end_date(query, _), do: {:ok, query}
+
+  defp working_time_to_map(working_time) do
+    %{
+      id: working_time.id,
+      start: DateTime.to_iso8601(working_time.start),
+      end: DateTime.to_iso8601(working_time.end),
+      user: working_time.user
+    }
   end
 
   defp working_time_to_map(working_time) do

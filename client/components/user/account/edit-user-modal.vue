@@ -2,6 +2,10 @@
 import ModifyFormUser from "~/components/user/account/modify-form-user.vue";
 
 const isOpen = useState<boolean>('isOpen', () => false)
+
+const userStore = useUserStore();
+
+const currentUser = computed(() => userStore.currentUser)
 </script>
 
 <template>
@@ -9,7 +13,7 @@ const isOpen = useState<boolean>('isOpen', () => false)
 
   <UModal v-model="isOpen">
     <UCard :ui="{ ring: '', divide: 'divide-y divide-gray-100 dark:divide-gray-800' }">
-      <ModifyFormUser :user-id="1" :is-open="isOpen"/>
+      <ModifyFormUser :user="currentUser" :is-open="isOpen"/>
     </UCard>
   </UModal>
 </template>

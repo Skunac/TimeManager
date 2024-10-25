@@ -17,6 +17,9 @@ config :timemanager, Timemanager.Repo,
        adapter: Ecto.Adapters.Postgres,
        pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
 
+config :timemanager, Timemanager.Token,
+       secret_key: "ZqdtglWnb2wiFdcD7FY/ZKY6U1D4eVPcb0SzBah9Q2/51tCAiRzB4+VpzmSpukqb"
+
 # CORS configuration
 config :cors_plug,
        origin: ["*"],

@@ -1,13 +1,19 @@
 <script setup lang="ts">
+const props = defineProps<{
+  user: User
+}>()
+const router = useRouter();
+const userStore = useUserStore();
+
 const alertIsOpen = useState<boolean>('alertIsOpen', () => false)
 
-const userStore = useUserStore();
 const toast = useToast();
 
 const deleteMyAccount = async () => {
   try {
-    /*await userStore.deleteUser()*/
+    await userStore.deleteUser(props.user.id)
     alertIsOpen.value = false
+    await router.replace('/sign-up')
     toast.add({ title: 'Success', description: 'Your account has been deleted successfully' })
   }catch (e) {
     toast.add({ title: 'Error', description: 'An error was occurred' })

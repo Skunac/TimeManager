@@ -1,12 +1,40 @@
 defmodule TimemanagerWeb.UserController do
   use TimemanagerWeb, :controller
   import Ecto.Query
-  alias Timemanager.Repo
-  alias Timemanager.User
-  alias Timemanager.Team
+  alias Timemanager.{Repo, User, Role, Team}
 
+  @doc """
+  Lists all users
+  """
   def index(conn, _params) do
-    users = Repo.all(User) |> Repo.preload([:teams, :role])
+    current_user_role = conn.assigns[:current_user_role]
+    current_user_id = conn.assigns[:current_user_id]
+
+    users = case current_user_role do
+      "general_manager" ->
+        User
+        |> Repo.all()
+        |> Repo.preload([:teams, :role])
+
+      "manager" ->
+        # Get users that share any team with the manager
+        query = from u in User,
+                     join: ut1 in "users_teams",
+                     on: ut1.user_id == u.id,
+                     join: ut2 in "users_teams",
+                     on: ut2.team_id == ut1.team_id,
+                     where: ut2.user_id == ^current_user_id,
+                     distinct: true,
+                     preload: [:teams, :role]
+
+        Repo.all(query)
+
+      _ ->
+        User
+        |> where([u], u.id == ^current_user_id)
+        |> Repo.all()
+        |> Repo.preload([:teams, :role])
+    end
 
     if Enum.empty?(users) do
       conn
@@ -17,216 +45,172 @@ defmodule TimemanagerWeb.UserController do
     end
   end
 
-  def create_user(conn, user_params) do
-    teams = parse_teams(user_params["teams"])
+  @doc """
+  Creates a new user
+  """
+  def create(conn, user_params) do
+    changeset = User.changeset(%User{}, user_params)
 
-    Repo.transaction(fn ->
-      changeset = User.changeset(%User{}, user_params)
+    case Repo.insert(changeset) do
+      {:ok, user} ->
+        user = Repo.preload(user, [:teams, :role])
 
-      with {:ok, user} <- Repo.insert(changeset),
-           :ok <- associate_teams(user, teams) do
-        user |> Repo.preload([:teams, :role])
-      else
-        {:error, changeset} -> Repo.rollback(changeset)
-      end
-    end)
-    |> case do
-         {:ok, user} ->
-           conn
-           |> put_status(:created)
-           |> json(user_to_json(user))
+        conn
+        |> put_status(:created)
+        |> json(user_to_json(user))
 
-         {:error, changeset} ->
-           conn
-           |> put_status(:unprocessable_entity)
-           |> json(handle_errors(changeset))
-       end
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{errors: format_changeset_errors(changeset)})
+    end
   end
 
-  def get_user_by_id(conn, %{"id" => id}) do
-    case Repo.get(User, id) |> Repo.preload([:teams, :role]) do
+  @doc """
+  Shows a specific user
+  """
+  def show(conn, %{"id" => id}) do
+    with {:ok, user_id} <- validate_id(id),
+         %User{} = user <- Repo.get(User, user_id) |> Repo.preload([:teams, :role]) do
+      json(conn, user_to_json(user))
+    else
+      {:error, :invalid_id} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid user ID format"})
+
+      nil ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "User not found"})
+    end
+  end
+
+  @doc """
+  Updates a user
+  """
+  def update(conn, %{"id" => id} = params) do
+    with {:ok, user_id} <- validate_id(id),
+         %User{} = user <- Repo.get(User, user_id) |> Repo.preload([:teams, :role]),
+         teams <- parse_teams(params["teams"]),
+         {:ok, updated_user} <- do_update_user(user, params, teams) do
+
+      updated_user = Repo.preload(updated_user, [:teams, :role], force: true)
+      json(conn, user_to_json(updated_user))
+    else
+      {:error, :invalid_id} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid user ID format"})
+
       nil ->
         conn
         |> put_status(:not_found)
         |> json(%{error: "User not found"})
 
-      user ->
-        json(conn, user_to_json(user))
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{errors: format_changeset_errors(changeset)})
     end
   end
 
-  def get_user_by_username_and_email(conn, params) do
-    username = Map.get(params, "username")
-    email = Map.get(params, "email")
+  @doc """
+  Deletes a user
+  """
+  def delete(conn, %{"id" => id}) do
+    with {:ok, user_id} <- validate_id(id),
+         %User{} = user <- Repo.get(User, user_id),
+         {:ok, _deleted} <- Repo.delete(user) do
 
-    case Repo.get_by(User, username: username, email: email) |> Repo.preload([:teams, :role]) do
+      conn
+      |> put_status(:ok)
+      |> json(%{message: "User deleted successfully"})
+    else
+      {:error, :invalid_id} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid user ID format"})
+
       nil ->
         conn
         |> put_status(:not_found)
         |> json(%{error: "User not found"})
 
-      user ->
-        json(conn, user_to_json(user))
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{errors: format_changeset_errors(changeset)})
     end
   end
 
-  def put_user_by_id(conn, %{"id" => id} = params) do
-    case Repo.get(User, id) |> Repo.preload([:teams, :role]) do
+  @doc """
+  Promotes a user to manager role
+  """
+  def promote(conn, %{"id" => id}) do
+    with {:ok, user_id} <- validate_id(id),
+         %User{} = user <- Repo.get(User, user_id) |> Repo.preload(:role),
+         :ok <- validate_not_manager(user),
+         %Role{} = manager_role <- Repo.get_by(Role, name: "manager"),
+         {:ok, updated_user} <- update_user_role(user, manager_role),
+         loaded_user <- Repo.preload(updated_user, [:teams, :role]) do
+
+      conn
+      |> put_status(:ok)
+      |> json(user_to_json(loaded_user))
+    else
+      {:error, :already_manager} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "User is already a manager"})
+
+      {:error, :invalid_id} ->
+        conn
+        |> put_status(:bad_request)
+        |> json(%{error: "Invalid user ID format"})
+
       nil ->
         conn
         |> put_status(:not_found)
-        |> json(%{error: "User not found"})
+        |> json(%{error: "User or manager role not found"})
 
-      user ->
-        Repo.transaction(fn ->
-          changeset = User.changeset(user, params)
-
-          with {:ok, updated_user} <- Repo.update(changeset),
-               {:ok, updated_user} <- update_teams(updated_user, params["teams"]) do
-            updated_user |> Repo.preload([:teams, :role])
-          else
-            {:error, changeset} -> Repo.rollback(changeset)
-            {:error, :invalid_teams} -> Repo.rollback(:invalid_teams)
-          end
-        end)
-        |> case do
-             {:ok, updated_user} ->
-               json(conn, user_to_json(updated_user))
-
-             {:error, :invalid_teams} ->
-               conn
-               |> put_status(:unprocessable_entity)
-               |> json(%{error: "One or more provided team IDs do not exist"})
-
-             {:error, changeset} ->
-               conn
-               |> put_status(:unprocessable_entity)
-               |> json(handle_errors(changeset))
-           end
-    end
-  end
-
-  def delete_user_by_id(conn, %{"id" => id}) do
-    case Repo.get(User, id) do
-      nil ->
+      {:error, changeset} ->
         conn
-        |> put_status(:not_found)
-        |> json(%{error: "User not found"})
-
-      user ->
-        case Repo.delete(user) do
-          {:ok, _deleted_user} ->
-            conn
-            |> put_status(:ok)
-            |> json(%{message: "User deleted successfully"})
-
-          {:error, changeset} ->
-            conn
-            |> put_status(:internal_server_error)
-            |> json(%{error: "Failed to delete user", details: format_changeset_errors(changeset)})
-        end
+        |> put_status(:unprocessable_entity)
+        |> json(%{
+          error: "Failed to promote user",
+          details: format_changeset_errors(changeset)
+        })
     end
   end
 
-  defp associate_teams(user, teams) when is_list(teams) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+  # Private functions
 
-    team_inserts = Enum.map(teams, fn team ->
-      %{user_id: user.id, team_id: team.id, inserted_at: now, updated_at: now}
-    end)
+  defp validate_not_manager(%User{role: %Role{name: "manager"}}), do: {:error, :already_manager}
+  defp validate_not_manager(_user), do: :ok
 
-    case Repo.insert_all("users_teams", team_inserts) do
-      {_, _} -> :ok
-      _ -> {:error, "Failed to associate teams"}
+  defp update_user_role(user, new_role) do
+    user
+    |> User.role_changeset(%{role_id: new_role.id})
+    |> Repo.update()
+  end
+
+  defp validate_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {id, ""} when id > 0 -> {:ok, id}
+      _ -> {:error, :invalid_id}
     end
   end
-  defp associate_teams(_user, _teams), do: :ok
+  defp validate_id(_), do: {:error, :invalid_id}
 
-  defp parse_teams(team_ids) when is_list(team_ids) do
-    Repo.all(from t in Team, where: t.id in ^team_ids)
-  end
-  defp parse_teams(_), do: []
-
-  defp user_to_json(user) do
+  defp user_to_json(%User{} = user) do
     %{
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role && user.role.name,
-      teams: Enum.map(user.teams, fn team -> %{id: team.id, name: team.name} end)
+      role: (user.role && user.role.name) || "unknown",
+      teams: Enum.map(user.teams || [], fn team -> %{id: team.id, name: team.name} end)
     }
-  end
-
-  defp update_teams(user, teams) when is_list(teams) do
-    current_team_ids = MapSet.new(Enum.map(user.teams, & &1.id))
-    new_team_ids = MapSet.new(parse_team_ids(teams))
-
-    case validate_team_ids(new_team_ids) do
-      :ok ->
-        teams_to_add = MapSet.difference(new_team_ids, current_team_ids)
-        teams_to_remove = MapSet.difference(current_team_ids, new_team_ids)
-
-        Repo.transaction(fn ->
-          # Remove old associations
-          Repo.delete_all(from ut in "users_teams",
-                          where: ut.user_id == ^user.id and ut.team_id in ^MapSet.to_list(teams_to_remove))
-
-          # Add new associations
-          now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
-          team_inserts = Enum.map(teams_to_add, fn team_id ->
-            %{user_id: user.id, team_id: team_id, inserted_at: now, updated_at: now}
-          end)
-          Repo.insert_all("users_teams", team_inserts)
-        end)
-
-        {:ok, Repo.preload(user, :teams, force: true)}
-
-      :error ->
-        {:error, :invalid_teams}
-    end
-  end
-
-  defp update_teams(user, _teams), do: {:ok, user}
-
-  defp parse_team_ids(team_ids) when is_list(team_ids) do
-    team_ids
-    |> Enum.map(fn
-      id when is_binary(id) -> String.to_integer(id)
-      id when is_integer(id) -> id
-    end)
-    |> Enum.filter(&(&1 > 0))
-  end
-  defp parse_team_ids(_), do: []
-
-  defp validate_team_ids(team_ids) do
-    existing_team_ids = Repo.all(from t in Team, select: t.id) |> MapSet.new()
-
-    if MapSet.subset?(team_ids, existing_team_ids) do
-      :ok
-    else
-      :error
-    end
-  end
-
-  defp handle_errors(changeset) do
-    errors = changeset.errors
-
-    cond do
-      has_error?(errors, :username, "has already been taken") ->
-        %{error: :username_taken}
-
-      has_error?(errors, :email, "has already been taken") ->
-        %{error: :email_taken}
-
-      true ->
-        %{errors: format_changeset_errors(changeset)}
-    end
-  end
-
-  defp has_error?(errors, field, message) do
-    Enum.any?(errors, fn {key, {msg, _}} ->
-      key == field and msg =~ message
-    end)
   end
 
   defp format_changeset_errors(changeset) do
@@ -234,6 +218,58 @@ defmodule TimemanagerWeb.UserController do
       Enum.reduce(opts, msg, fn {key, value}, acc ->
         String.replace(acc, "%{#{key}}", to_string(value))
       end)
+    end)
+  end
+
+  defp parse_teams(teams) when is_list(teams) do
+    # If teams is an empty list, return it explicitly
+    if Enum.empty?(teams) do
+      []
+    else
+      query = from(team in Team, where: team.id in ^teams)
+      Repo.all(query)
+    end
+  end
+  defp parse_teams(nil), do: nil
+  defp parse_teams(_), do: nil
+
+  defp update_user_teams(user, nil), do: {:ok, user}  # No teams in request, keep existing
+  defp update_user_teams(user, teams) do              # Handle both empty and non-empty lists
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    # Always clear existing associations first
+    Repo.delete_all(from(ut in "users_teams", where: ut.user_id == ^user.id))
+
+    # Only insert new associations if teams list is not empty
+    if Enum.empty?(teams) do
+      {:ok, user}  # Return success with no new teams
+    else
+      team_inserts = Enum.map(teams, fn team ->
+        %{
+          user_id: user.id,
+          team_id: team.id,
+          inserted_at: now,
+          updated_at: now
+        }
+      end)
+
+      case Repo.insert_all("users_teams", team_inserts) do
+        {_, _} -> {:ok, user}
+        _ -> {:error, "Failed to update teams"}
+      end
+    end
+  end
+
+  defp do_update_user(user, params, teams) do
+    Repo.transaction(fn ->
+      with {:ok, updated_user} <- User.update_changeset(user, params) |> Repo.update(),
+           {:ok, user_with_teams} <- update_user_teams(updated_user, teams) do
+        # Force reload associations to ensure we get the updated state
+        updated_user = Repo.preload(user_with_teams, [:teams, :role], force: true)
+        updated_user
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
     end)
   end
 end

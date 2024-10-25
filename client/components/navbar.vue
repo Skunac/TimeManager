@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import NaivgationMenu from "~/components/naivgation-menu.vue";
+
+const { isDesktop, isMobile } = useDevice();
+
 const links = [
   {
     label: 'Home',
@@ -15,7 +19,11 @@ const links = [
 
 <template>
   <nav>
-    <UContainer :ui="{ base: 'flex justify-between', padding: 'lg:px-0' }">
+    <div v-if="isMobile" class="mx-4 mt-14">
+      <NaivgationMenu/>
+    </div>
+
+    <UContainer v-if="isDesktop" :ui="{ base: 'flex justify-between', padding: 'lg:px-0' }">
       <div class="flex items-center">
         <UserButton/>
 
@@ -23,7 +31,7 @@ const links = [
 
         <UHorizontalNavigation :ui="{ icon: {inactive: 'group-hover:text-sky-500/80' }}" :links="links">
           <template #default="{ link }">
-            <span class="text-xs group-hover:text-primary relative" @click="navigateTo(`${link.name}/2`)">{{ link.label }}</span>
+            <span class="text-xs group-hover:text-primary relative" @click="navigateTo(`${link.name}`)">{{ link.label }}</span>
           </template>
         </UHorizontalNavigation>
       </div>

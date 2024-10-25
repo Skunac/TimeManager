@@ -19,7 +19,6 @@ defmodule Timemanager.Repo.Migrations.CreateRoles do
     execute """
     INSERT INTO roles (name, inserted_at, updated_at)
     VALUES
-      ('administrator', NOW(), NOW()),
       ('general_manager', NOW(), NOW()),
       ('manager', NOW(), NOW()),
       ('employee', NOW(), NOW());

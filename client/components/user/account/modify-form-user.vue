@@ -2,11 +2,11 @@
 import type { FormError, FormSubmitEvent } from '#ui/types'
 
 const props = defineProps<{
-  userId: number
+  user: User
   isOpen: boolean
 }>()
 
-const user = useState<User | null>('user', () => null)
+/*const user = useState<User | null>('user', () => null)*/
 const isLoading = useState<boolean>('isLoading', () => true)
 
 const toast = useToast();
@@ -18,11 +18,10 @@ const state = reactive({
   email: ""
 })
 
-const fetchUserData = async () => {
+const setData = async () => {
   try {
-    user.value = await userStore.getUser(1);
-    state.username = user.value?.username
-    state.email = user.value?.email
+    state.username = props.user?.username
+    state.email = props.user?.email
 
     isLoading.value = false
   } catch (err) {
@@ -32,8 +31,8 @@ const fetchUserData = async () => {
 }
 
 watchEffect(() => {
-  if (props.isOpen && props.userId) {
-    fetchUserData()
+  if (props.isOpen && props.user) {
+    setData()
   }
 })
 
@@ -53,7 +52,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
   }
 
   try {
-    await userStore.updateUser(props.userId, formatUpdateData)
+    await userStore.updateUser(props.user.id, formatUpdateData)
     toast.add({ title: 'Success', description: 'Your account has been updated' })
   }catch (e) {
     console.error(e)
@@ -75,7 +74,7 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
               size="2xl"
           />
 
-          <UButton label="Modify" size="xs"/>
+          <UButton label="Modify" size="xs" disabled/>
         </div>
       </UFormGroup>
 
@@ -88,7 +87,9 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
       </UFormGroup>
 
       <UFormGroup label="Role">
-        <USelectMenu placeholder="Manager" disabled />
+        <UInput v-if="props.user.role === 'general_manager' || props.user.role === 'administrator'" placeholder="General Manager" disabled />
+        <UInput v-else-if="props.user.role === 'manager'" placeholder="Manager" disabled />
+        <UInput v-else placeholder="Employee" disabled />
       </UFormGroup>
 
       <UButton type="submit" size="xs">

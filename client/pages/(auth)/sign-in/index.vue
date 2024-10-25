@@ -9,8 +9,6 @@ import type { FormError, FormSubmitEvent } from '#ui/types'
 import {useRouter} from "#vue-router";
 import useApiService from "~/services/api";
 
-const isLoading = useState<boolean>('isLoading', () => true)
-
 const toast = useToast();
 const router = useRouter();
 
@@ -39,8 +37,6 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
 
     apiService.login(authenticationData).then(async (authenticatedUser) => {
       if(authenticatedUser) {
-        userStore.currentUser = authenticatedUser.user;
-
         toast.add({ title: 'Success', description: 'You are logged in' })
         await router.push('/')
       }else {
@@ -66,9 +62,9 @@ const onSubmit = async (event: FormSubmitEvent<any>) => {
           <UInput v-model="state.password" type="password" />
         </UFormGroup>
 
-        <UButton block type="submit">
-          Sign In
-        </UButton>
+        <UButton block type="submit" label="Sign In"/>
+
+        <UButton label="Create an account" variant="ghost" @click="navigateTo('sign-up')"/>
       </UForm>
     </div>
   </main>

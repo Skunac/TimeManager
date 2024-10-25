@@ -18,9 +18,11 @@ export const useClockStore = defineStore('clock', {
 
         async getClockByUserId(userId: number) {
             const { data, error } = await this.api.getClockByUserId(userId)
+
             if (error.value) {
                 throw new Error('Failed to get clock for user')
             }
+
             this.currentClock = data.value
             return data.value
         },

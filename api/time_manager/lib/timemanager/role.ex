@@ -4,11 +4,9 @@ defmodule Timemanager.Role do
 
   schema "roles" do
     field :name, :string
-
     timestamps(type: :utc_datetime)
   end
 
-  @doc false
   def changeset(role, attrs) do
     role
     |> cast(attrs, [:name])

@@ -5,8 +5,39 @@ defmodule TimemanagerWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :browser do
+    plug :accepts, ["html"]
+    plug :put_secure_browser_headers
+  end
+
   pipeline :auth do
     plug TimemanagerWeb.AuthPlug
+  end
+
+  pipeline :manager_auth do
+    plug TimemanagerWeb.AuthorizationPlug, [
+      user_id_param: "id",
+      require_manager: true,
+      allow_team_access: false
+    ]
+  end
+
+  # For self-access only routes
+  pipeline :self_access do
+    plug TimemanagerWeb.AuthorizationPlug, [
+      user_id_param: "id",
+      require_manager: false,
+      allow_team_access: false
+    ]
+  end
+
+  # For resources that allow self access and team access
+  pipeline :user_resource_auth do
+    plug TimemanagerWeb.AuthorizationPlug, [
+      user_id_param: "userID",
+      require_manager: false,
+      allow_team_access: true
+    ]
   end
 
   scope "/api", TimemanagerWeb do
@@ -17,21 +48,33 @@ defmodule TimemanagerWeb.Router do
     post "/login", AuthController, :login
   end
 
-
   scope "/api", TimemanagerWeb do
     pipe_through [:api, :auth]
 
-    # Scope Users
+    # Users scope
     scope "/users" do
-      get "", UserController, :index
-      get "", UserController, :get_user_by_username_and_email
-      get "/:id", UserController, :get_user_by_id
-      post "", UserController, :create_user
-      put "/:id", UserController, :put_user_by_id
-      delete "/:id", UserController, :delete_user_by_id
+      # Manager/General Manager only routes
+      scope "/" do
+        pipe_through :manager_auth
+
+        get "", UserController, :index
+        post "", UserController, :create
+        post "/:id/promote", UserController, :promote
+        put "/:id", UserController, :update
+        delete "/:id", UserController, :delete
+      end
+
+      # Self-access only route
+      scope "/" do
+        pipe_through :self_access
+        get "/:id", UserController, :show
+      end
     end
 
+    # Teams scope (manager only)
     scope "/teams" do
+      pipe_through :manager_auth
+
       get "", TeamController, :index
       get "/:id", TeamController, :show
       post "", TeamController, :create
@@ -39,8 +82,10 @@ defmodule TimemanagerWeb.Router do
       delete "/:id", TeamController, :delete
     end
 
-    # Scope WorkingTime
+    # Working Times scope (self or manager of team)
     scope "/workingtime" do
+      pipe_through :user_resource_auth
+
       get "/:userID", WorkingTimeController, :index
       get "/:userID/:id", WorkingTimeController, :show
       post "/:userID", WorkingTimeController, :create
@@ -48,12 +93,19 @@ defmodule TimemanagerWeb.Router do
       delete "/:id", WorkingTimeController, :delete
     end
 
-    # Scope Clocks
+    # Clocks scope (self or manager of team)
     scope "/clocks" do
+      pipe_through :user_resource_auth
+
       get "", ClockController, :index
       get "/:userID", ClockController, :get_clock_by_user_id
       post "/:userID", ClockController, :create
     end
+  end
+
+  scope "/", TimemanagerWeb do
+    pipe_through :browser
+    get "/*path", PageController, :index
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
