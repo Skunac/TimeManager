@@ -20,14 +20,19 @@ config :timemanager, Timemanager.Repo,
 config :timemanager, Timemanager.Token,
        secret_key: "ZqdtglWnb2wiFdcD7FY/ZKY6U1D4eVPcb0SzBah9Q2/51tCAiRzB4+VpzmSpukqb"
 
-# CORS configuration
 config :cors_plug,
-       origin: ["*"],
+       origin: ["http://46.101.190.248:3000", "http://localhost:3000"],
        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin", "X-C-XSRF-Token"],
+       headers: ["authorization", "content-type", "x-csrf-token", "x-requested-with", "accept", "origin"],
        max_age: 86400,
        credentials: true,
        expose: ["*"]
+
+config :timemanager, TimemanagerWeb.Endpoint,
+       url: [host: System.get_env("PHX_HOST") || "localhost", port: 80],
+       http: [port: 4000],
+       check_origin: false,
+       cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Configures Swoosh API Client
 config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Timemanager.Finch

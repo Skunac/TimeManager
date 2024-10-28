@@ -1,8 +1,6 @@
 defmodule TimemanagerWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :timemanager
 
-  plug CORSPlug
-
   plug Plug.Static,
        at: "/",
        from: {:timemanager, "priv/static"},
@@ -55,5 +53,8 @@ defmodule TimemanagerWeb.Endpoint do
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options
+
+  plug CORSPlug
+
   plug TimemanagerWeb.Router
 end
