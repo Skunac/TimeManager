@@ -1,4 +1,3 @@
-// nuxt.config.ts
 export default defineNuxtConfig({
   app: {
     baseURL: '/',
@@ -43,8 +42,7 @@ export default defineNuxtConfig({
   pinia: {
     autoImports: ['defineStore', 'storeToRefs'],
   },
-
-  nitro: {
-    preset: 'static'
-  }
+  // nitro: {
+  //   preset: 'static'
+  // }
 })

@@ -42,6 +42,7 @@ services:
       PORT: 3000
       API_URL: http://phoenix:4000/api
       API_BASE_URL: http://46.101.190.248/api
+      NUXT_PUBLIC_API_URL: http://46.101.190.248:4000/api
     depends_on:
       - phoenix
     networks:

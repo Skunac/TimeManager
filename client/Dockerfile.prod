@@ -20,15 +20,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy built assets from the build stage
+# Copy the entire .output directory
 COPY --from=build /app/.output ./
-
-# Copy entrypoint script
-COPY entrypoint.prod.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.prod.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["/usr/local/bin/entrypoint.prod.sh"]
+ENV HOST=0.0.0.0
+ENV PORT=3000
 
-CMD ["node", "server/index.mjs"]
+# Start the server
+CMD ["node", "./server/index.mjs"]
