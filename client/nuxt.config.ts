@@ -30,10 +30,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      API_URL: process.env.NUXT_PUBLIC_API_URL ||
-          (process.env.CAPACITOR_PLATFORM === 'android' ?
-              'http://10.0.2.2:4000/api' :
-              'http://localhost:4000/api')
+      API_URL: process.env.NUXT_PUBLIC_API_URL || 'http://46.101.190.248:4000/api'
     }
   },
 
@@ -41,8 +38,5 @@ export default defineNuxtConfig({
 
   pinia: {
     autoImports: ['defineStore', 'storeToRefs'],
-  },
-  // nitro: {
-  //   preset: 'static'
-  // }
+  }
 })

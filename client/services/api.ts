@@ -11,7 +11,7 @@ const useApiService = () => {
 
     const baseURL = isAndroid ?
         'http://10.0.2.2:4000/api' :
-        config.public.API_URL
+        'http://46.101.190.248:4000/api'
 
     const xsrfToken = useCookie('XSRF-TOKEN')
 
