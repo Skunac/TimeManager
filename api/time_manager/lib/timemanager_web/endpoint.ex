@@ -14,7 +14,9 @@ defmodule TimemanagerWeb.Endpoint do
     store: :cookie,
     key: "_timemanager_key",
     signing_salt: "j0aTQVyy",
-    same_site: "Lax"
+    same_site: "Lax",
+    secure: false,
+    http_only: true
   ]
 
   socket "/live", Phoenix.LiveView.Socket,
