@@ -21,7 +21,7 @@ const useApiService = () => {
                 ...options.headers,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                ...(xsrfToken.value && { 'X-C-XSRF-Token': xsrfToken.value })
+                ...(xsrfToken.value && { 'X-CSRF-Token': xsrfToken.value })
             }
 
             if (Capacitor.isNativePlatform()) {

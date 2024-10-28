@@ -5,7 +5,7 @@ defmodule TimemanagerWeb.AuthController do
 
   @cookie_options [
     http_only: true,
-    secure: Mix.env() != :dev,
+    secure: false,
     max_age: 3600,
     same_site: "Lax",
     path: "/"
